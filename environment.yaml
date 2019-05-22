@@ -1,0 +1,8 @@
+name: tao
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - numpy
+  - pandas
+  - petsc4py
