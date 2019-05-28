@@ -1,38 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Aug 18
-
-@author: Christian Zimpelmann
-"""
-#%load_ext autoreload
-#%autoreload 2
-
-
-# PETSC for Python
-from petsc4py import PETSc
-
-
-# Time Access and Conversions
-import time
-
-# Scientific Computing
-import numpy as np
-
-# System-specific Parameters and Functions
-import sys
-
-# Importing the module wrapping
-# the criterion functions and
-# the functions for the visual
-# illustration. We also import
-# auxiliary functions.
-sys.path.insert(0, 'modules')
-from auxiliary import simulate_sample, simulate_ols_sample
-
-
-
-
-class OptCls(object):
+class OptClsLS(object):
     """ Class to illustrate the use of the Toolkit for
         Advanced Optimization.
     """
@@ -112,10 +78,11 @@ class OptCls(object):
         endog = self.endog
 
         # Calculate deviations
-        dev = (endog - np.exp(-paras[0]*exog)/(paras[1] + paras[2]*exog))**2
+        dev = (endog - paras[0]-paras[1]*exog)
 
         # Finishing
         return dev
+
 
 #######Run first ry
 # Ensure recomputability
@@ -123,16 +90,16 @@ np.random.seed(456)
 
 # Parameterization of optimization
 # problem
-PARAS = [0.20, 0.12, 0.08]   # True values
-START = [0.10, 0.08, 0.05]   # Starting values
+PARAS = [0.20, 0.12]   # True values
+START = [0.10, 0.08]   # Starting values
 
-num_agents = 100
+num_agents = 10000
 
 # wie können wir so nen SPaß simulieren ?
-exog, endog = simulate_sample(num_agents, PARAS)
+exog, endog = simulate_ols_sample(num_agents, PARAS)
 
 # Initialize class container
-opt_obj = OptCls(exog, endog, START)
+opt_obj = OptClsLS(exog, endog, START)
 func = opt_obj.form_separable_objective
 
 # Manage PETSc objects.
@@ -165,4 +132,5 @@ tao.solve()
 #crit.destroy()
 
 #tao.destroy()
+
 

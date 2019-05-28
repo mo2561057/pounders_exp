@@ -93,12 +93,12 @@ user.size  = OptDB.getInt (    'n', user.size)
 user.alpha = OptDB.getReal('alpha', user.alpha)
 
 # create solution vector
-x = PETSc.Vec().create(PETSc.COMM_SELF)
+x = PETSc.Vec().create(PETSc.COMM_WORLD)
 x.setSizes(user.size)
 x.setFromOptions()
 
 # create Hessian matrix
-H = PETSc.Mat().create(PETSc.COMM_SELF)
+H = PETSc.Mat().create(PETSc.COMM_WORLD)
 H.setSizes([user.size, user.size])
 H.setFromOptions()
 H.setOption(PETSc.Mat.Option.SYMMETRIC, True)
@@ -108,10 +108,10 @@ H.setUp()
 #  $ ... -methods nm,lmvm,nls,ntr,cg,blmvm,tron
 # to try many methods
 methods = OptDB.getString('methods', '')
-methods = methods.split(',')
+methods = ["bqnktl"]
 for meth in methods:
     # create TAO Solver
-    tao = PETSc.TAO().create(PETSc.COMM_SELF)
+    tao = PETSc.TAO().create(PETSc.COMM_WORLD)
     if meth: tao.setType(meth)
     tao.setFromOptions()
     # solve the problem
@@ -123,7 +123,7 @@ for meth in methods:
     x.set(0) # zero initial guess
     #tao.setInitial(x)
     tao.solve(x)
-    tao.destroy()
+
 
 ## # this is just for testing
 ## x     = app.getSolution()
