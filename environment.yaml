@@ -3,6 +3,13 @@ channels:
   - defaults
   - conda-forge
 dependencies:
+  - python=3.6
   - numpy
+  - mpi
+  - mpi4py
   - pandas
-  - petsc4py
+  - pip
+  - pip:
+      - petsc
+      - petsc4py
+      

@@ -10,17 +10,13 @@ Created on Aug 18
 
 # PETSC for Python
 from petsc4py import PETSc
-from tao4py import TAO
+
 
 # Time Access and Conversions
 import time
 
 # Scientific Computing
 import numpy as np
-
-# Plotting 
-import matplotlib.pyplot as plt
-%pylab inline --no-import-all
 
 # System-specific Parameters and Functions
 import sys
@@ -31,9 +27,7 @@ import sys
 # illustration. We also import
 # auxiliary functions.
 sys.path.insert(0, 'modules')
-from clsOpt import OptCls
-from graphs import *
-from auxiliary import *
+from auxiliary import simulate_sample
 
 
 
@@ -62,11 +56,11 @@ class OptCls(object):
         num_paras = self.num_paras
 
         # Create container for parameter values
-        paras = PETSc.Vec().create(PETSc.COMM_SELF)
+        paras = PETSc.Vec().create(PETSc.COMM_WORLD)
         paras.setSizes(num_paras)
 
         # Create container for criterion function
-        crit = PETSc.Vec().create(PETSc.COMM_SELF)
+        crit = PETSc.Vec().create(PETSc.COMM_WORLD)
         crit.setSizes(num_agents)
 
         # Management
@@ -90,6 +84,7 @@ class OptCls(object):
 
         # Attach to PETSc object
         f.array = dev
+        return f.array
 
     def form_objective(self, tao, paras):
         """ Form objective function for Nelder-Mead algorithm. The
@@ -122,7 +117,7 @@ class OptCls(object):
         # Finishing
         return dev
 
-def conduct_pounders()
+def conduct_pounders():
     # Ensure recomputability
     np.random.seed(456)
 
@@ -133,7 +128,7 @@ def conduct_pounders()
 
     num_agents = 1000
 
-    # Simulate a sample
+    # wie können wir so nen SPaß simulieren ?
     exog, endog = simulate_sample(num_agents, PARAS)
 
     # Initialize class container
@@ -145,19 +140,22 @@ def conduct_pounders()
     opt_obj.set_initial_guess(paras)
 
     # Initialize solver instance
-    tao = TAO.Solver().create(PETSc.COMM_SELF)
+    tao = PETSc.TAO().create(PETSc.COMM_WORLD)
 
-    tao.setType('tao_pounders')
+
+    tao.setType(PETSc.TAO.Type.POUNDERS)
 
     tao.setFromOptions()
 
-    tao.setSeparableObjective(opt_obj.form_separable_objective, crit)
+    func = opt_obj.form_objective
+    tao.setObjective(func)
 
     # Solve optimization problem
+    tao.setInitial(crit)
     tao.solve(paras)
 
     # Inspect solution
-    plot_solution(paras, endog, exog)
+    #plot_solution(paras, endog, exog)
 
     # Cleanup
     paras.destroy()
@@ -165,13 +163,4 @@ def conduct_pounders()
     crit.destroy()
 
     tao.destroy()
-
-if __name__ == "__main__":
-    model='baseline'
-    stage='start'
-    #real_inds, real_data, raw_data, sim_inds_1, \
-    #sim_data_1, sim_inds_mc, sim_data_mc = compare_data()
-    inds_finished, data_finished = sim_mc()
-    #check_convert_raw_data()
-
 
