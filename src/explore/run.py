@@ -4,13 +4,7 @@ Created on Aug 18
 
 @author: Christian Zimpelmann
 """
-#%load_ext autoreload
-#%autoreload 2
-
-
-# PETSC for Python
 from petsc4py import PETSc
-
 
 # Time Access and Conversions
 import time
@@ -119,14 +113,14 @@ class OptCls(object):
 
 #######Run first ry
 # Ensure recomputability
-np.random.seed(456)
+
 
 # Parameterization of optimization
 # problem
-PARAS = [0.20, 0.12, 0.08]   # True values
+PARAS = [0.5, 0.4, 0.2]   # True values
 START = [0.10, 0.08, 0.05]   # Starting values
 
-num_agents = 100
+num_agents = 15000
 
 # wie können wir so nen SPaß simulieren ?
 exog, endog = simulate_sample(num_agents, PARAS)
@@ -138,28 +132,34 @@ func = opt_obj.form_separable_objective
 # Manage PETSc objects.
 paras, crit = opt_obj.create_vectors()
 
+#initialize the paras container
 opt_obj.set_initial_guess(paras)
 
 # Initialize solver instance
 tao = PETSc.TAO().create(PETSc.COMM_WORLD)
 
+#set the optiimization types
 tao.setType('pounders')
 
+#Still not quite sur e
 tao.setFromOptions()
 
-
-tao.setResidual(func,R = crit)
+#This function has changed as can be seen from the manual!
+#The R crit is what I have understood in the src code.
+#It seems to go into another function call there which i couldnt fully trace
+tao.setResidual(func,crit)
 
 
 
 # Solve optimization problem
 tao.setInitial(paras)
+
 tao.solve()
 
 # Inspect solution
 #plot_solution(paras, endog, exog)
 
-# Cleanup
+# Cleanup.
 #paras.destroy()
 
 #crit.destroy()

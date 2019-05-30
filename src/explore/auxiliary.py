@@ -9,8 +9,8 @@ import pandas as pd
 
 
 def simulate_sample(num_agents,paras):
-    exog = np.random.uniform(-5,5,num_agents)
-    error_term = np.random.normal(0,1,num_agents)
+    exog = np.random.uniform(0,1,num_agents)
+    error_term = np.random.normal(0,0.5,num_agents)
     endog = np.exp(-paras[0]*exog)/(paras[1]+paras[2]*exog)+error_term
     return exog,endog
 
