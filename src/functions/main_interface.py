@@ -10,7 +10,7 @@ from petsc4py import PETSc
 def solve(func,x,constraints=None,bounds=None):
     """
     func the objective function !#
-    constraints
+    constraints: list of functions in this case
     bounds
     initial guess
     Start with the easiest version possible!
@@ -24,8 +24,12 @@ def solve(func,x,constraints=None,bounds=None):
     tao.setType('pounders')
     tao.setFromOptions() #boiler plate ???
     tao.setResidual(func, crit)
+
     if constraints != None:
-        tao.setConstraintsRoutine()
+        constr = _get_constraint_container(len(constraints))
+        tao.setConstraints(constr,constraints) #Das will ich eventuell noch ein bisschen umschreiben je nachdem
+
+
     #set up constraints
     #set up bounds
     tao.setInitial(paras)
@@ -50,6 +54,11 @@ def _prep_args(size_paras,size_prob):
     crit.setSizes(num_agents)
 
     return paras, crit
+
+def _get_constraint_container(num_const):
+    constr = PETSc.Vec().create(PETSc.COMM_WORLD)
+    constr.setSizes(num_const)
+    return constr
 
 
 def _set_constraints():
