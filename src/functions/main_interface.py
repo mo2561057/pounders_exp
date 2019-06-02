@@ -10,11 +10,12 @@ from petsc4py import PETSc
 def solve(func,x,constraints=None,bounds=None):
     """
     func the objective function !#
-    constraints: list of functions in this case
+    constraints: list of functions in this case. Maybe into a dict ? 
     bounds
     initial guess
     Start with the easiest version possible!
     Only work with pounders for now.
+
     """
     #we want to get containers for the func verctor and the paras
     size_paras = len(x)
@@ -28,7 +29,7 @@ def solve(func,x,constraints=None,bounds=None):
     if constraints != None:
         constr = _get_constraint_container(len(constraints))
         tao.setConstraints(constr,constraints) #Das will ich eventuell noch ein bisschen umschreiben je nachdem
-
+        #Seems like they are zero by default I think
 
     #set up constraints
     #set up bounds
