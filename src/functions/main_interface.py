@@ -1,9 +1,6 @@
 """
 Define the algorithm required.
 """
-import os
-
-import numpy as np
 from petsc4py import PETSc
 
 
