@@ -3,7 +3,6 @@ Define the algorithm required.
 """
 from petsc4py import PETSc
 
-
 def solve(func,x,bounds=None):
     """
     Args:
@@ -20,6 +19,12 @@ def solve(func,x,bounds=None):
 
     #Set the start value
     paras[:] = x
+    def func_tao(tao,paras,f):
+        dev = func(paras.array)
+        # Attach to PETSc object
+        f.array = dev
+
+
 
     #Create the solver object
     tao = PETSc.TAO().create(PETSc.COMM_WORLD)
@@ -28,7 +33,7 @@ def solve(func,x,bounds=None):
 
     #Set the procedure for calculating the objective
     #This part has to be changed if we want more than pounders
-    tao.setResidual(func, crit)
+    tao.setResidual(func_tao, crit)
 
     #Set the variable sounds if existing
     if bounds != None:
@@ -44,6 +49,7 @@ def solve(func,x,bounds=None):
     out = dict()
     out["solution"] = paras.array
     out["func_values"] = crit.array
+    out["x"] = x
 
     #Destroy petsc objects for memory reasons
     tao.destroy()
