@@ -57,12 +57,19 @@ class OptCls(object):
         crit = PETSc.Vec().create(PETSc.COMM_WORLD)
         crit.setSizes(num_agents)
 
+        #Hard coding constraint
+        cont = PETSc.Vec().create(PETSc.COMM_WORLD)
+        cont.setSizes(1)
+
         # Management
+        #These do initialize the containers before there is only a generator object
         paras.setFromOptions()
         crit.setFromOptions()
+        #cont.setFromOptions()
 
         # Finishing
-        return paras, crit
+        return paras, crit, cont
+
 
     def set_initial_guess(self, paras):
         """ Initialize the initial parameter values
@@ -78,6 +85,10 @@ class OptCls(object):
 
         # Attach to PETSc object
         f.array = dev
+
+    def EvaluateConstraints(self,tao,paras,constraint):
+        constraint.array = paras[0]-paras[1]
+        assert constraint.array == 0
 
 
     def form_objective(self, tao, paras):
@@ -113,6 +124,9 @@ class OptCls(object):
 
 #######Run first ry
 # Ensure recomputability
+# Impose an easy constraint
+
+
 
 
 # Parameterization of optimization
@@ -130,7 +144,7 @@ opt_obj = OptCls(exog, endog, START)
 func = opt_obj.form_separable_objective
 
 # Manage PETSc objects.
-paras, crit = opt_obj.create_vectors()
+paras, crit, cont = opt_obj.create_vectors()
 
 #initialize the paras container
 opt_obj.set_initial_guess(paras)
@@ -142,13 +156,13 @@ tao = PETSc.TAO().create(PETSc.COMM_WORLD)
 tao.setType('pounders')
 
 #Still not quite sur e
-tao.setFromOptions()
+#tao.setFromOptions()
 
 #This function has changed as can be seen from the manual!
 #The R crit is what I have understood in the src code.
 #It seems to go into another function call there which i couldnt fully trace
 tao.setResidual(func,crit)
-
+tao.setConstraints(opt_obj.EvaluateConstraints,cont)
 
 
 # Solve optimization problem
