@@ -28,3 +28,16 @@ def test_robustness_2():
     out = solve(objective,x),START,PARAS
 
     return out, PARAS, START
+
+def test_box_constr():
+    PARAS = np.random.uniform(0.3,0.4,size=2)
+    START = np.random.uniform(0.1,0.2,size=2)
+    bounds = [[0,0],[0.3,0.3]]
+
+    num_agents = 10000
+    objective,x = set_up_test_2(PARAS,START,num_agents)
+    out = solve(objective,x,bounds = bounds)
+    assert 0 <= out["solution"][0] <= 0.3
+    assert 0 <= out["solution"][1] <= 0.3
+
+

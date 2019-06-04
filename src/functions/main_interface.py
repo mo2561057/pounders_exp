@@ -34,10 +34,13 @@ def solve(func,x,bounds=None):
     #Set the procedure for calculating the objective
     #This part has to be changed if we want more than pounders
     tao.setResidual(func_tao, crit)
-
+    #Change they need to be in a container
     #Set the variable sounds if existing
     if bounds != None:
-        tao.setVarBounds(bounds)
+        low,up = _prep_args(len(x),len(x))
+        low.array = bounds[0]
+        up.array=bounds[1]
+        tao.setVariableBounds([low,up])
 
     #Set the container over which we optimize that already contians start values
     tao.setInitial(paras)
