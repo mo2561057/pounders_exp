@@ -13,7 +13,9 @@ def test_robustness_1():
     START = np.random.uniform(size=3)
     num_agents = np.random.randint(1000)
     objective,x = set_up_test_1(PARAS,START,num_agents)
-    out = solve(objective,x),START,PARAS
+    len_x = len(x)
+    len_out = len(objective(x))
+    out = solve(objective,x,len_out,len_x),START,PARAS
 
     return out, PARAS, START
 
@@ -25,7 +27,9 @@ def test_robustness_2():
 
     num_agents = 10000
     objective,x = set_up_test_2(PARAS,START,num_agents)
-    out = solve(objective,x),START,PARAS
+    len_x = len(x)
+    len_out = len(objective(x))
+    out = solve(objective,x,len_out,len_x),START,PARAS
 
     return out, PARAS, START
 
@@ -36,7 +40,9 @@ def test_box_constr():
 
     num_agents = 10000
     objective,x = set_up_test_2(PARAS,START,num_agents)
-    out = solve(objective,x,bounds = bounds)
+    len_x = len(x)
+    len_out = len(objective(x))
+    out = solve(objective,x,len_out,len_x,bounds = bounds)
     assert 0 <= out["solution"][0] <= 0.3
     assert 0 <= out["solution"][1] <= 0.3
 

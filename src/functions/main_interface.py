@@ -3,18 +3,19 @@ Define the algorithm required.
 """
 from petsc4py import PETSc
 
-def solve(func,x,bounds=None):
+def solve(func,x,len_out,len_x,bounds=None):
     """
     Args:
         func:pointer to a function object that resembles the objective
-        x:list that contains the start values of the variables of interest
+        x:np.array that contains the start values of the variables of interest
         bounds: list or tuple of lists containing the bounds for the variable of interest
+                The first list contains the lower value for each param and the upper list the upper value
     Returns:
         out: dict containing the solution param and the optimal values of the objective
     """
     #we want to get containers for the func verctor and the paras
-    size_paras = len(x)
-    size_objective = len(func(x))
+    size_paras = len_x
+    size_objective = len_out
     paras, crit = _prep_args(size_paras,size_objective)
 
     #Set the start value
@@ -36,7 +37,7 @@ def solve(func,x,bounds=None):
     tao.setResidual(func_tao, crit)
     #Change they need to be in a container
     #Set the variable sounds if existing
-    if bounds != None:
+    if bounds is not None:
         low,up = _prep_args(len(x),len(x))
         low.array = bounds[0]
         up.array=bounds[1]
