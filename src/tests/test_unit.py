@@ -17,7 +17,7 @@ def test_robustness_1():
     len_out = len(objective(x))
     out = solve(objective,x,len_out,len_x),START,PARAS
 
-    return out, PARAS, START
+    return out
 
 def test_robustness_2():
     #get random args
@@ -31,7 +31,7 @@ def test_robustness_2():
     len_out = len(objective(x))
     out = solve(objective,x,len_out,len_x),START,PARAS
 
-    return out, PARAS, START
+    return out
 
 def test_box_constr():
     PARAS = np.random.uniform(0.3,0.4,size=2)
