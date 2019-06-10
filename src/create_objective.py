@@ -33,24 +33,5 @@ def _return_dev_ols(endog,exog,x):
     return dev
 
 
-def set_up_test_1(PARAS,START,num_agents):
-    """
-    This is a bit ad hoc
-
-    """
-    #Simulate values
-    exog, endog = simulate_sample(num_agents, PARAS)
-    # Initialize class container
-    func = return_obj_func(_return_dev,endog,exog)
-    return func, START
-
-
-
-def set_up_test_2(PARAS,START,num_agents):
-    """
-    """
-    exog, endog = simulate_ols_sample(num_agents, PARAS)
-    func = return_obj_func(_return_dev_ols,endog,exog)
-    return func, START
 
 

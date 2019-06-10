@@ -54,6 +54,7 @@ def solve(func,x,len_out,len_x,bounds=None):
     out["solution"] = paras.array
     out["func_values"] = crit.array
     out["x"] = x
+    out["conv"] = tao.getConvergedReason()
 
     #Destroy petsc objects for memory reasons
     tao.destroy()
