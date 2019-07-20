@@ -2,6 +2,9 @@
 Define the algorithm required.
 """
 from petsc4py import PETSc
+from functools import partial
+
+from src.auxiliary import max_iters, gatol_conv, grtol_conv
 
 def solve(func,
           x,
@@ -10,7 +13,9 @@ def solve(func,
           bounds=None,
           init_tr = None,
           tol = {"gatol":0.00000001,"grtol":0.00000001,"gttol":0.0000000001},
-          max_iterations = None
+          max_iterations = None,
+          gatol = None,
+          grtol = None
           ):
     """
     Args:
@@ -22,7 +27,12 @@ def solve(func,
         tol: Sets the tolarance for the three default stopping criteria. The routine will stop once the first is reached
         max_iterations: ALternative Stopping criterion. If set the routine will stop after the number of specified
                         iterations or after the step size is sufficiently small.
-    Returns:
+        gatol: This allows to set an explicit stopping criterion for the norm of the approximated gradient. The routine
+               will either stop when the gradient satisfies the condition or when the step size is sufficiently small.
+        grtol: This allows to set an explicit stopping criterion for the norm of the approximated gradient divided by
+                the function value .The routine will either stop when the value satisfies the condition or when the
+                git cstep size is sufficiently small
+    Returns:                                                                        
         out: dict containing the solution param and the optimal values of the objective
     """
     #we want to get containers for the func verctor and the paras
@@ -36,19 +46,6 @@ def solve(func,
         dev = func(paras.array)
         # Attach to PETSc object
         f.array = dev
-
-
-    def max_iters(tao):
-        if max_iterations is not None:
-            max = max_iterations
-        else:
-            max_iters = -99
-
-        if tao.getSolutionStatus()[0] < max_iterations:
-            return(0)
-        if tao.getSolutionStatus()[0] >= max_iterations:
-            tao.setConvergedReason(8)
-
 
     #Create the solver object
     tao = PETSc.TAO().create(PETSc.COMM_WORLD)
@@ -82,10 +79,17 @@ def solve(func,
     #Set the container over which we optimize that already contians start values
     tao.setInitial(paras)
 
-    #Set tolerances for convergence or user defined convergence criteria
+    #Set tolerances for default convergence tests
     tao.setTolerances(gatol=tol["gatol"],gttol=tol["gttol"],grtol=tol["grtol"])
+
+    #Set user defined convergence tests. Beware that specifiying multiple tests could overwrite others or lead to
+    # unclear behavior.
     if max_iterations is not None:
-        tao.setConvergenceTest(max_iters)
+        tao.setConvergenceTest(partial(max_iters,max_iterations))
+    if grtol is not None:
+        tao.setConvergenceTest(partial(grtol_conv,grtol))
+    if gatol is not None:
+        tao.setConvergenceTest(partial(gatol_conv,gatol))
 
     #Run the problem
     tao.solve()
