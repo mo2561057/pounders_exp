@@ -3,7 +3,9 @@
 """
 import numpy as np
 
-from src.functions.main_interface import solve
+from src.main_interface import solve
+from src.simulate import simulate_ols_sample, simulate_sample
+from src.create_objective import return_obj_func, _return_dev, _return_dev_ols
 
 
 
@@ -11,7 +13,7 @@ def test_robustness_1():
     #get random args
     PARAS = np.random.uniform(size=3)
     START = np.random.uniform(size=3)
-    num_agents = np.random.randint(1000)
+    num_agents = 10000
     objective,x = set_up_test_1(PARAS,START,num_agents)
     len_x = len(x)
     len_out = len(objective(x))

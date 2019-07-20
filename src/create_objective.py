@@ -17,7 +17,7 @@ import sys
 # illustration. We also import
 # auxiliary functions.
 sys.path.insert(0, 'modules')
-from src.auxiliary.simulate import simulate_sample, simulate_ols_sample
+from src.simulate import simulate_sample, simulate_ols_sample
 
 def _return_dev(endog,exog,x):
     dev = (endog - np.exp(-x[0]*exog)/(x[1] + x[2]*exog))**2
