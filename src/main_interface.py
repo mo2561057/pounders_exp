@@ -4,45 +4,62 @@ Define the algorithm required.
 from petsc4py import PETSc
 from functools import partial
 
-from src.auxiliary import max_iters, gatol_conv, grtol_conv
+from src.auxiliary import max_iters, gatol_conv, grtol_conv, grtol_gatol_conv, get_tolerances, conv_reason
 
 def solve(func,
           x,
           len_out,
-          len_x,
           bounds=None,
           init_tr = None,
           tol = {"gatol":0.00000001,"grtol":0.00000001,"gttol":0.0000000001},
           max_iterations = None,
-          gatol = None,
-          grtol = None
+          gatol = True,
+          grtol = True,
+          gttol = True
           ):
     """
     Args:
-        func:pointer to a function object that resembles the objective
+        func: function that takes a 1d numpy array and returns a 1d numpy array
         x:np.array that contains the start values of the variables of interest
         bounds: list or tuple of lists containing the bounds for the variable of interest
                 The first list contains the lower value for each param and the upper list the upper value
-        init_tr: Sets the radius for the initil trust region
-        tol: Sets the tolarance for the three default stopping criteria. The routine will stop once the first is reached
-        max_iterations: ALternative Stopping criterion. If set the routine will stop after the number of specified
+        init_tr: Sets the radius for the initial trust region that the optimizer employs. 
+        tol: Sets the tolerance for the three default stopping criteria. The routine will stop once the first is reached.
+             One can turn off specific criteria with other args. In this case their value in this dict does not matter.
+
+        max_iterations: Alternative Stopping criterion. If set the routine will stop after the number of specified
                         iterations or after the step size is sufficiently small.
-        gatol: This allows to set an explicit stopping criterion for the norm of the approximated gradient. The routine
+        gatol: Boolean that indicates whether the gatol should be cosnidered.
+               If set to true
+               This allows to set an explicit stopping criterion for the norm of the approximated gradient. The routine
                will either stop when the gradient satisfies the condition or when the step size is sufficiently small.
         grtol: This allows to set an explicit stopping criterion for the norm of the approximated gradient divided by
                 the function value .The routine will either stop when the value satisfies the condition or when the
-                git cstep size is sufficiently small
+                git step size is sufficiently small
+        gttol:
     Returns:                                                                        
-        out: dict containing the solution param and the optimal values of the objective
+        out: dict containing the solution vector as np.array, the values of the objective at the solution vector as
+        np.array, an np.array of start values, an int indicating the reason why the algorithm stopped,
+
     """
     #we want to get containers for the func verctor and the paras
-    size_paras = len_x
+    size_paras = len(x)
     size_objective = len_out
     paras, crit = _prep_args(size_paras,size_objective)
 
     #Set the start value
     paras[:] = x
+
     def func_tao(tao,paras,f):
+        """
+        This function takes an input, calculates the value of the objective and
+        attaches it to an petsc object f thereafter.
+        func_tao puts the objective in a format that the optimizer requires.
+        Args:
+             tao: The tao object we created for the optimization task
+             paras: 1d np.array of the current values at which we want to evaluate the function.
+             f: Petsc object in which we save the current function value
+        """
         dev = func(paras.array)
         # Attach to PETSc object
         f.array = dev
@@ -50,18 +67,14 @@ def solve(func,
     #Create the solver object
     tao = PETSc.TAO().create(PETSc.COMM_WORLD)
 
-
     #Set the solver type
     tao.setType('pounders')
-    #tao.setConvergenceTest(2)
 
     tao.setFromOptions()
 
     #Set the procedure for calculating the objective
     #This part has to be changed if we want more than pounders
     tao.setResidual(func_tao, crit)
-
-
 
     #We try to set user defined convergence tests
     if init_tr is not None:
@@ -79,6 +92,11 @@ def solve(func,
     #Set the container over which we optimize that already contians start values
     tao.setInitial(paras)
 
+    #Obtain tolerances for the convergence criteria
+    #Since we can not create gttol manually we manually set gatol and or grtol to zero once a subset of these two is
+    #turned off and gttol is still turned on
+    tol_real = get_tolerances(tol, gatol, grtol)
+
     #Set tolerances for default convergence tests
     tao.setTolerances(gatol=tol["gatol"],gttol=tol["gttol"],grtol=tol["grtol"])
 
@@ -86,10 +104,13 @@ def solve(func,
     # unclear behavior.
     if max_iterations is not None:
         tao.setConvergenceTest(partial(max_iters,max_iterations))
-    if grtol is not None:
-        tao.setConvergenceTest(partial(grtol_conv,grtol))
-    if gatol is not None:
-        tao.setConvergenceTest(partial(gatol_conv,gatol))
+    elif gttol is False and gatol is False :
+        tao.setConvergenceTest(partial(grtol_conv,tol["grtol"]))
+    elif gatol is False and gttol is False :
+        tao.setConvergenceTest(partial(gatol_conv, tol["gatol"]))
+    elif gttol is False:
+        tao.setConvergenceTest(partial(grtol_gatol_conv, tol["grtol"], tol["gatol"]))
+
 
     #Run the problem
     tao.solve()
@@ -99,9 +120,8 @@ def solve(func,
     out["solution"] = paras.array
     out["func_values"] = crit.array
     out["x"] = x
-    out["conv"] = tao.getConvergedReason()
+    out["conv"] = conv_reason[tao.getConvergedReason()]
     out["sol"] = tao.getSolutionStatus()
-    out["tol"] = tao.getTolerances()
 
     #Destroy petsc objects for memory reasons
     tao.destroy()
