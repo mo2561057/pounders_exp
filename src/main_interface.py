@@ -98,7 +98,7 @@ def solve(func,
     tol_real = get_tolerances(tol, gatol, grtol)
 
     #Set tolerances for default convergence tests
-    tao.setTolerances(gatol=tol["gatol"],gttol=tol["gttol"],grtol=tol["grtol"])
+    tao.setTolerances(gatol=tol_real["gatol"],gttol=tol_real["gttol"],grtol=tol_real["grtol"])
 
     #Set user defined convergence tests. Beware that specifiying multiple tests could overwrite others or lead to
     # unclear behavior.

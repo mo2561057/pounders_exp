@@ -118,7 +118,7 @@ def test_gttol():
                 tol={"grtol": 1, "gatol": 1, "gttol": 1},
                 bounds=bounds,
                 grtol=False,
-                gttol=False
+                gatol=False
                 )
     assert (out["conv"] == "gttol below critical value" or out["conv"] == "step size small")
 
